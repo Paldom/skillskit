@@ -1,0 +1,15 @@
+{
+  "name": "{{REPO_NAME}}",
+  "owner": {
+    "name": "{{GITHUB_OWNER}}",
+    "url": "https://github.com/{{GITHUB_OWNER}}"
+  },
+  "plugins": [
+    {
+      "name": "{{REPO_NAME}}",
+      "source": ".",
+      "description": "{{REPO_DESCRIPTION}}",
+      "category": "development"
+    }
+  ]
+}

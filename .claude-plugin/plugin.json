@@ -1,0 +1,11 @@
+{
+  "name": "skillskit",
+  "description": "From context to installable agent skills - research packs in, validated skills.sh-ready skills out. Scaffolding, eval-first authoring, validation, and deployment included.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Paldom",
+    "url": "https://github.com/Paldom"
+  },
+  "homepage": "https://github.com/Paldom/skillskit",
+  "license": "MIT"
+}

@@ -1,0 +1,15 @@
+{
+  "name": "skillskit",
+  "owner": {
+    "name": "Paldom",
+    "url": "https://github.com/Paldom"
+  },
+  "plugins": [
+    {
+      "name": "skillskit",
+      "source": ".",
+      "description": "From context to installable agent skills - research packs in, validated skills.sh-ready skills out. Scaffolding, eval-first authoring, validation, and deployment included.",
+      "category": "development"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "skill": "skill-from-research",
+  "cases": [
+    { "type": "should_trigger", "prompt": "turn this research pack into a skill" },
+    { "type": "should_trigger", "prompt": "create a skill from this research" },
+    { "type": "should_trigger", "prompt": "I dropped my deep-research report in .local/sources - make skills from it" },
+    { "type": "should_trigger", "prompt": "here's a folder of research about terraform testing, build me a skill" },
+    { "type": "should_trigger", "prompt": "distill these reports into agent skills" },
+    { "type": "should_trigger", "prompt": "research pack to skill pls" },
+    { "type": "should_trigger", "prompt": "make a skill out of these notes and transcripts" },
+    { "type": "should_trigger", "prompt": "I have a 40-page research doc on webhooks - skillify it" },
+    { "type": "should_trigger", "prompt": "convert my research into an installable skill" },
+    { "type": "should_trigger", "prompt": "use this research to add new skills to the repo" },
+    { "type": "should_not_trigger", "prompt": "add a skill for changelog drafting" },
+    { "type": "should_not_trigger", "prompt": "create python-skills as a new repo" },
+    { "type": "should_not_trigger", "prompt": "do deep research on GraphQL federation" },
+    { "type": "should_not_trigger", "prompt": "summarize this research report for me" },
+    { "type": "should_not_trigger", "prompt": "improve triggering of the icon-draw skill" },
+    { "type": "should_not_trigger", "prompt": "publish this repo to skills.sh" },
+    { "type": "should_not_trigger", "prompt": "organize my research folder" },
+    { "type": "should_not_trigger", "prompt": "what skills exist for react development?" },
+    { "type": "should_not_trigger", "prompt": "write a blog post from my research notes" },
+    {
+      "type": "quality",
+      "prompt": "I put a research pack about API pagination best practices in .local/sources - turn it into skills",
+      "expected_behavior": [
+        "runs scripts/pack_inventory.py first and reports what the pack contains (flags empty, duplicate, or unreadable files before reading)",
+        "reads the entire pack recursively, then verifies load-bearing claims against primary sources on the web before encoding them",
+        "splits the material into single-purpose skills (splits anything needing 'and') and checks the existing catalog for trigger overlap",
+        "authors each skill eval-first (evals.json before SKILL.md) per the add-skill workflow, with distilled verified facts in references/ - never citing .local paths",
+        "finishes with the repo validator green and catalog/CHANGELOG/groupings updated; nothing committed"
+      ]
+    },
+    {
+      "type": "quality",
+      "prompt": "make a skill from this research folder",
+      "expected_behavior": [
+        "detects that the current directory is not a skills repository (no skills/ layout or validator)",
+        "offers the real options instead of scattering files: scaffold a new repo via create-skill-repo, or target an existing repo the user names",
+        "does not write skill files into an arbitrary directory without the user choosing a destination"
+      ]
+    },
+    {
+      "type": "quality",
+      "prompt": "build skills from my pack - heads up, I think one file might be empty and some findings are from last year",
+      "expected_behavior": [
+        "the inventory script flags the empty file explicitly (0 bytes) instead of silently reading nothing",
+        "stale or unverifiable claims are re-verified against primary sources; what fails verification is version-gated or dropped and listed in the report",
+        "the final summary distinguishes facts encoded, facts discarded, and facts marked verify-at-use"
+      ]
+    },
+    {
+      "type": "quality",
+      "prompt": "here is a 1.5MB research pack with six reports - create the skills",
+      "expected_behavior": [
+        "reads large reports in chunks rather than truncating silently; anything skipped is named",
+        "considers parallel distillation for independent reports when subagents are available",
+        "the resulting skills stay single-purpose - a big pack yields more skills, not bigger skills"
+      ]
+    }
+  ]
+}

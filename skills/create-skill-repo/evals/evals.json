@@ -1,0 +1,101 @@
+{
+  "skill": "create-skill-repo",
+  "cases": [
+    {
+      "type": "should_trigger",
+      "prompt": "I want to create python-skills"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "new skill repo icon-designer"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "scaffold a skills folder for terraform helpers"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "set up a new skills repository for data-viz stuff"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "create a collection of skills for sql review"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "start a repo for a single skill that designs app icons"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "make me a github-ready skills repo called docs-skills"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "i wanna create rust-skills pls"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "add a skill for icon design to the existing icon-designer repo"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "improve the bundled scaffold template in skillskit"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "fix the trigger evals of the python packaging skill"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "install the python-skills plugin in this project"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "create a new git repo for my flask app"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "what skills repos exist in this workspace?"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "turn this research pack into a skill"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "update the scaffold validator to check assets/"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "push icon-designer to github"
+    },
+    {
+      "type": "quality",
+      "prompt": "I want to create python-skills - skills that help maintain high quality open source python packages",
+      "expected_behavior": [
+        "runs scaffold.py with name python-skills, a benefit-led description, the user's idea, and --gitignore Python",
+        "the repo is created private on GitHub via gh repo create and the scaffold commit is pushed",
+        "resulting repo passes its validator with 0 errors",
+        ".local/PROMPT.md contains the user's idea and starts with /goal",
+        "hands off with cd python-skills && claude, paste-PROMPT instructions, and the publish (visibility flip + ruleset) steps"
+      ]
+    },
+    {
+      "type": "quality",
+      "prompt": "create icon-designer, a single skill repo",
+      "expected_behavior": [
+        "derives a kebab-case name without asking redundant questions",
+        "refuses to proceed if the folder exists locally or the repo already exists on GitHub",
+        "mentions .local/ is gitignored and where to drop sources"
+      ]
+    },
+    {
+      "type": "quality",
+      "prompt": "scaffold Claude-Helpers as a new skills repo",
+      "expected_behavior": [
+        "rejects or renames the name: uppercase and the reserved word claude are invalid",
+        "explains the naming constraint instead of silently proceeding"
+      ]
+    }
+  ]
+}

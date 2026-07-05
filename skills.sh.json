@@ -1,0 +1,28 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Research to skill",
+      "description": "Drop in a research pack; get validated, eval-first skills out - every claim verified against primary sources, never pasted.",
+      "skills": [
+        "skill-from-research"
+      ]
+    },
+    {
+      "title": "Scaffold",
+      "description": "A complete skills repository in one command - OSS hygiene, CI with a consumer-install gate, validation hooks, and skills.sh distribution wired from birth.",
+      "skills": [
+        "create-skill-repo"
+      ]
+    },
+    {
+      "title": "Author and ship",
+      "description": "Eval-first authoring for any repo, and a deliberate, verified path to the skills.sh catalogue.",
+      "skills": [
+        "add-skill",
+        "publish-repo"
+      ]
+    }
+  ]
+}

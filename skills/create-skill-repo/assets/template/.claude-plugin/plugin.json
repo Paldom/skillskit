@@ -1,0 +1,11 @@
+{
+  "name": "{{REPO_NAME}}",
+  "description": "{{REPO_DESCRIPTION}}",
+  "version": "0.1.0",
+  "author": {
+    "name": "{{GITHUB_OWNER}}",
+    "url": "https://github.com/{{GITHUB_OWNER}}"
+  },
+  "homepage": "https://github.com/{{GITHUB_OWNER}}/{{REPO_NAME}}",
+  "license": "MIT"
+}
