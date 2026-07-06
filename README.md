@@ -12,6 +12,17 @@ From context to installable agent skills: research packs in, validated
 skills.sh-ready skills out — scaffolding, eval-first authoring, validation, and
 deployment included.
 
+```mermaid
+flowchart LR
+    T(["💡 any topic"]) --> RK["🔍 <b>researchkit</b><br/>8 AI search engines in parallel:<br/>one cited report + archived sources"]
+    RK -- "one-shot:<br/>teach every agent" --> SK["⚡ <b>skillskit</b><br/>research pack in, validated skill out —<br/>installable in 70+ agents via skills.sh"]
+    RK -- "compounding:<br/>grow a memory" --> BK["🧠 <b>brainkit</b><br/>portable hybrid brain (OKF wiki + RAG),<br/>cited answers for agents and harnesses"]
+    classDef here stroke:#f97316,stroke-width:3px;
+    class SK here
+```
+
+**The one-shot path.** [researchkit](https://github.com/Paldom/researchkit) does the digging; skillskit turns the pack into a skill you install once and reuse in every agent. Prefer compounding memory over a packaged skill? Grow a brain with [brainkit](https://github.com/Paldom/brainkit).
+
 ```
 research pack ──▶ /skill-from-research ──▶ validated skills ──▶ /publish-repo ──▶ skills.sh
                         │

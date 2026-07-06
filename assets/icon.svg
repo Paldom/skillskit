@@ -1,16 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <title>skillskit</title>
   <rect id="bg" width="1024" height="1024" rx="229" fill="#2A2A2E"/>
-  <defs>
-    <g id="half">
-      <polygon points="240,208 432,208 432,304 336,304 336,720 432,720 432,816 240,816"/>
-    </g>
-  </defs>
   <g id="glyph">
-    <g fill="#E8E8EA">
-      <use href="#half"/>
-      <use href="#half" transform="translate(1024,0) scale(-1,1)"/>
-    </g>
+    <path id="bracket-l" d="M 368 288 H 288 V 736 H 368" fill="none" stroke="#E8E8EA" stroke-width="64"/>
+    <path id="bracket-r" d="M 656 288 H 736 V 736 H 656" fill="none" stroke="#E8E8EA" stroke-width="64"/>
     <polygon fill="#F5A623" points="512,368 560,464 656,512 560,560 512,656 464,560 368,512 464,464"/>
   </g>
 </svg>
