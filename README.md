@@ -2,10 +2,10 @@
   <img src="assets/icon.svg" alt="skillskit icon" width="128"/>
 </p>
 
-# Skillskit
+# skillskit
 
 [![CI](https://github.com/Paldom/skillskit/actions/workflows/ci.yml/badge.svg)](https://github.com/Paldom/skillskit/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![License](https://img.shields.io/badge/license-MIT-green)
 [![skills.sh](https://skills.sh/b/Paldom/skillskit)](https://skills.sh/Paldom/skillskit)
 
 From context to installable agent skills: research packs in, validated
@@ -14,9 +14,9 @@ deployment included.
 
 ```mermaid
 flowchart LR
-    T(["💡 any topic"]) --> RK["🔍 <b>researchkit</b><br/>8 AI search engines in parallel:<br/>one cited report + archived sources"]
+    T(["💡 any topic"]) --> RK["🔍 <b>researchkit</b><br/>12 AI search providers in parallel:<br/>one cited report + archived sources"]
     RK -- "one-shot:<br/>teach every agent" --> SK["⚡ <b>skillskit</b><br/>research pack in, validated skill out —<br/>installable in 70+ agents via skills.sh"]
-    RK -- "compounding:<br/>grow a memory" --> BK["🧠 <b>brainkit</b><br/>portable hybrid brain (OKF wiki + RAG),<br/>cited answers for agents and harnesses"]
+    RK -- "compounding:<br/>grow a memory" --> BK["🧠 <b>brainkit</b><br/>portable hybrid brain (OKF wiki + retrieval ladder),<br/>cited answers for agents and harnesses"]
     classDef here stroke:#f97316,stroke-width:3px;
     class SK here
 ```
@@ -54,6 +54,10 @@ Or as a Claude Code plugin:
 
 Then drop your research into a folder and say **"turn this research pack into a
 skill"** — or invoke any skill directly with `/<skill-name>`.
+
+Working inside this checkout? Codex and other Agent-Skills-standard agents
+discover the same four skills via the repo's `.agents/skills/` — no install
+needed.
 
 ## Skills
 
