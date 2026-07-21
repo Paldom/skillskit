@@ -91,6 +91,11 @@ undo (everything ever pushed becomes visible).
    200 within minutes of a valid seed (canonical URL is lowercase on
    www.skills.sh; the search API lags the page). Still 404 after ~15 minutes
    means the telemetry never fired — re-check the env, don't wait on "cache".
+   Publishing SEVERAL repos? Seed them ONE at a time, ~5 minutes apart, and
+   confirm each page before the next: burst install events for multiple
+   unlisted repos from one machine are throttled server-side — the security
+   audit still runs but the listings never materialize, and re-seeding inside
+   the burst does nothing. A single spaced event lists within ~5 minutes.
 8. **Polish:** README badge
    `[![skills.sh](https://skills.sh/b/<owner>/<repo>)](https://skills.sh/<owner>/<repo>)`;
    homepage via `gh repo edit --homepage` (e.g. the skills.sh page); social
@@ -121,7 +126,9 @@ seed install performed, owner told exactly what to expect next.
 - The badge endpoint (`skills.sh/b/...`) returns 200 even for unlisted repos —
   it proves nothing; only the repo page URL does.
 - The page appears within minutes of a **valid** seed install; the search API
-  and leaderboard lag longer. A 404 beyond ~15 minutes = suppressed telemetry.
+  and leaderboard lag longer. A 404 beyond ~15 minutes = suppressed telemetry
+  — or a burst: seeding several unlisted repos back-to-back from one machine
+  gets throttled; space seeds ~5 minutes apart, one repo at a time.
 - Agent harnesses may permission-block the visibility flip and release
   commands (public-surface actions): hand the exact command to the owner to
   run themselves instead of retrying.

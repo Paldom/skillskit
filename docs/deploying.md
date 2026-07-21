@@ -83,7 +83,10 @@ skills.sh page.
 The verification install above is also what seeds the first telemetry event —
 run it locally (telemetry is auto-disabled in CI) with the opt-out variables
 unset as shown. A page still 404 after ~15 minutes means the seed never
-reported (re-check the environment); it is not cache lag.
+reported (re-check the environment); it is not cache lag. When publishing
+several repos, seed them one at a time ~5 minutes apart and confirm each page
+before the next — burst seeds from one machine are throttled server-side and
+the listings never materialize.
 
 ## Repo page (skills.sh.json)
 
@@ -119,6 +122,7 @@ stable; consumers reinstall from the same source.
 | `No skills found` | Missing/invalid `SKILL.md` (needs `name` + `description`), or skills outside `skills/` |
 | Skill installs but never loads | Check agent path, YAML validity, single-line description |
 | Page 404 although installs succeed | Telemetry suppressed: `DISABLE_TELEMETRY`/`DO_NOT_TRACK` set (any value) or run in CI — reseed with `env -u DISABLE_TELEMETRY -u DO_NOT_TRACK` |
+| Page 404 after seeding several repos | Burst throttling — one machine seeding multiple unlisted repos back-to-back; reseed one repo at a time, ~5 min apart |
 | Repo page ignores skills.sh.json | Wrong keys (schema wants `groupings` + `title`, rejects `groups`/`name` — `make check` validates), invalid JSON, or page cache |
 | `gh skill` unknown command | gh < 2.90 — use `gh release create` + `gh repo edit --add-topic` fallback |
 | Old CLI behavior from `npx skills` | Stale npx cache — pin `npx skills@latest` |
