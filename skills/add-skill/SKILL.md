@@ -1,6 +1,6 @@
 ---
 name: add-skill
-description: Authors or improves an Agent Skill in the current repository via the eval-first workflow - scope one purpose, write trigger evals, draft SKILL.md, validate, iterate. Use when the user asks to create, add, write, refine, or fix a skill ("add a skill for X", "improve triggering of Y"). Not for scaffolding a new repository (create-skill-repo) or distilling research packs (skill-from-research).
+description: Authors or improves an Agent Skill in the current repo via the eval-first workflow - scope one purpose, write trigger evals, draft SKILL.md, validate, benchmark. Use when the user asks to create, add, write, refine, fix, or benchmark a skill ("add a skill for X", "improve triggering of Y"). Not for scaffolding a new repo (create-skill-repo) or distilling research packs (skill-from-research).
 license: MIT
 argument-hint: <skill-name or idea>
 ---
@@ -53,14 +53,30 @@ name or idea to scope in step 1.
 6. **Trigger self-test.** For ≥3 should-trigger and ≥2 should-not-trigger
    prompts, reason explicitly: would the description alone route this prompt
    here against every other installed skill? Fix the description, not the evals.
-7. **Register.** Update the repo's README catalog, `CHANGELOG.md`, and
-   `skills.sh.json` grouping when those exist. Re-check sibling descriptions for
-   new overlap.
+7. **Measure.** Scan the available-skills list for Anthropic's official
+   `skill-creator` (typically `skill-creator:skill-creator`; the plugin-qualified
+   name varies by marketplace — match on name/description, don't hardcode). If
+   present, invoke it as a subskill via the Skill tool, scoped to *measure only*:
+   it runs each quality case as with-skill vs baseline subagents, grades
+   assertions, and benchmarks pass rate / time / tokens. Hand it cases from
+   `evals/evals.json` translated per "Automated harness" in
+   `references/evals.md`, and follow that section's guardrails (workspace-only
+   writes, cases-run check, description acceptance gate). If it's absent, run
+   the manual protocol instead and say so — it certifies triggering only, not
+   quality uplift; never let a skipped Measure pass silently as "measured".
+8. **Register.** Update the repo's README catalog, `CHANGELOG.md`, and
+   `skills.sh.json` grouping when those exist (schema shape: `"groupings":
+   [{"title": ..., "description": ..., "skills": [...]}]` — not `groups`/`name`;
+   skills.sh silently ignores a non-conforming file). Re-check sibling
+   descriptions for new overlap.
 
 ## Output spec (Definition of Done)
 
 - `skills/<name>/` with SKILL.md + evals/evals.json (+ scripts/references as needed)
 - Repo validator green (or the self-check documented when no validator exists)
+- Measured: official skill-creator benchmark when installed, else the manual
+  protocol from `references/evals.md` — state which ran (the fallback certifies
+  triggering only)
 - Catalog/CHANGELOG/groupings updated where present
 - A 3-line summary: purpose, trigger phrase examples, known limitations
 

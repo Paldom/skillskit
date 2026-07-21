@@ -75,3 +75,23 @@ single line, disjoint from its siblings.
 - No skills repo → route to `create-skill-repo` (it seeds the new repo's
   `.local/PROMPT.md` from the pack's idea) or ask the user to name a target.
   Never scatter skill folders into an arbitrary directory.
+
+## researchkit packs (the first-party producer)
+
+A [researchkit](https://github.com/Paldom/researchkit) run directory is a
+valid pack by construction (contract: researchkit's `docs/research-pack.md`,
+v1). Map it as:
+
+- `report.md` — the cited cross-provider synthesis: the primary text to
+  mine; its `## ` sections are the topic structure.
+- `materials/*.md` — archived primary sources, one per URL, with flat
+  frontmatter: `url` (the citable link — cite THIS, not the gitignored
+  file path), `title`, `published` (recency signal for version-gating),
+  `source_type` (`social` = user-generated, lower trust), `content_kind`,
+  `content_digest`. Ingest only files `materials/index.json` lists as
+  `status: "fetched"`.
+- `result.json` — provenance (models, providers, preset fingerprint);
+  its EXISTENCE means the run completed — refuse a dir without it.
+- `subprojects/*/` — boosted runs: each child is itself a full pack;
+  recurse.
+- `run.log`, `config.json` — context, not content.

@@ -28,10 +28,10 @@ Slash-invoked only: it flips repository visibility, which is hard to undo social
    owner instead.
    ```bash
    git status --porcelain          # must be empty
-   make check                      # must end: 0 error(s)
-   npx skills add . --list        # every skill under skills/ discovered
-   gh skill publish --dry-run     # spec validation (gh >= 2.90; public preview)
-   python3 -c "import json; json.load(open('skills.sh.json'))"
+   make check                      # must end: 0 error(s) — includes skills.sh.json schema shape
+   npx skills@latest add . --list  # every skill under skills/ discovered (@latest: a stale npx cache lies)
+   gh skill publish --dry-run      # spec validation (needs gh >= 2.90; older gh: skip, use the step-6 fallback)
+   env | grep -E 'DISABLE_TELEMETRY|DO_NOT_TRACK|^CI=' || true   # any hit -> the step-7 seed MUST use env -u
    ```
    Triage every `gh skill` warning: add missing `license: MIT` frontmatter; the
    `.claude/skills/` warning is expected here (bundled first-party dev skills,
@@ -64,14 +64,26 @@ Slash-invoked only: it flips repository visibility, which is hard to undo social
    It re-validates, adds the `agent-skills` topic if missing, and creates the
    release with auto-generated notes. Add the `skills-sh` topic too:
    `gh repo edit <owner>/<repo> --add-topic skills-sh`.
-7. **Verify like a consumer, and seed the catalogue** (run locally, NOT in CI —
-   telemetry is disabled in CI and the first real install is what lists the repo):
+   `gh` < 2.90 has no `gh skill` — equivalent fallback:
    ```bash
-   npx skills add <owner>/<repo> --list
+   gh release create v<version> --generate-notes
+   gh repo edit <owner>/<repo> --add-topic agent-skills --add-topic skills-sh
+   ```
+7. **Verify like a consumer, and seed the catalogue.** The first real install is
+   what lists the repo — and the CLI reports it ONLY when `DISABLE_TELEMETRY`,
+   `DO_NOT_TRACK`, and CI variables are all **fully unset** (any value disables,
+   even `0` or `false` — env strings are truthy). Run locally, never in CI, with
+   the opt-outs explicitly unset for these commands only:
+   ```bash
+   npx skills@latest add <owner>/<repo> --list
    mkdir -p /tmp/skills-verify && cd /tmp/skills-verify
-   npx skills add <owner>/<repo> --skill '*' -a claude-code -y
+   env -u DISABLE_TELEMETRY -u DO_NOT_TRACK npx skills@latest add <owner>/<repo> --skill '*' -a claude-code -y
    npx skills list -a claude-code
    ```
+   Then confirm the listing: `curl -sIL https://skills.sh/<owner>/<repo>` turns
+   200 within minutes of a valid seed (canonical URL is lowercase on
+   www.skills.sh; the search API lags the page). Still 404 after ~15 minutes
+   means the telemetry never fired — re-check the env, don't wait on "cache".
 8. **Polish:** the README carries the skills.sh badge
    (`[![skills.sh](https://skills.sh/b/<owner>/<repo>)](https://skills.sh/<owner>/<repo>)`
    — scaffolded by default); set the homepage (`gh repo edit --homepage`, e.g. to
@@ -94,7 +106,17 @@ skill grouped, seed install performed, user told exactly what to expect next.
   demands explicit confirmation and never self-certifies.
 - `npx skills add . --list` failing with "No skills found" means frontmatter or
   layout problems — fix via `make check` output, never by restructuring blindly.
-- The leaderboard/repo page lags the seed install; absence minutes later is
-  normal, not failure.
+- **Telemetry opt-outs silently kill the listing**: `DISABLE_TELEMETRY` or
+  `DO_NOT_TRACK` set to ANY value (even `0`/`false`) stops the install report —
+  the page then 404s forever while every install "succeeds". Always seed via
+  `env -u DISABLE_TELEMETRY -u DO_NOT_TRACK`.
+- Pin `npx skills@latest` — npx happily reuses a stale cached CLI version.
+- The badge endpoint (`skills.sh/b/...`) returns 200 even for unlisted repos —
+  it proves nothing; only the repo page URL does.
+- The page appears within minutes of a **valid** seed install; the search API
+  and leaderboard lag longer. A 404 beyond ~15 minutes = suppressed telemetry.
+- Agent harnesses may permission-block the visibility flip and release
+  commands (public-surface actions): hand the exact command to the owner to
+  run themselves instead of retrying.
 - Do not enable a require-PR ruleset on a solo repo whose workflow pushes to
   main directly — it will block the owner; use the staged default in step 5.

@@ -34,6 +34,10 @@
       "prompt": "let's build the first skill in this repo"
     },
     {
+      "type": "should_trigger",
+      "prompt": "benchmark the icon-designer skill - does it actually beat the no-skill baseline?"
+    },
+    {
       "type": "should_not_trigger",
       "prompt": "scaffold a new skills repository called python-skills"
     },
@@ -87,6 +91,15 @@
         "adds a targeted Not-for exclusion instead of deleting positive triggers",
         "re-checks sibling skill descriptions for overlap",
         "re-runs the trigger eval reasoning for affected cases"
+      ]
+    },
+    {
+      "type": "quality",
+      "prompt": "measure whether the changelog skill improves outputs and tune its description",
+      "expected_behavior": [
+        "invokes the official skill-creator skill via the Skill tool when installed, otherwise follows the manual protocol",
+        "translates evals.json cases into the harness formats in a workspace without rewriting the committed file",
+        "applies any optimized description back through repo rules (single line, Not-for kept) and re-runs the validator"
       ]
     },
     {

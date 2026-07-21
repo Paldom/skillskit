@@ -327,6 +327,77 @@ def check_manifest(path: Path, required: tuple[str, ...]) -> None:
         err(path, f"leftover template placeholder {m.group(0)}")
 
 
+SKILLS_SH_TOP_KEYS = {"$schema", "schema", "notGrouped", "groupings"}
+SKILLS_SH_GROUP_KEYS = {"title", "description", "skills"}
+
+
+def check_skills_sh(root: Path, distributed: list[str]) -> None:
+    """Validate skills.sh.json against the skills.sh schema shape.
+
+    The live schema (https://skills.sh/schemas/skills.sh.schema.json) uses
+    additionalProperties:false and REQUIRES `groupings` — a file with legacy
+    or guessed keys (`groups`, `name`) is silently ignored by skills.sh.
+    """
+    path = root / "skills.sh.json"
+    if not path.is_file():
+        warn(path, "missing — the skills.sh repo page cannot be customized without it")
+        return
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        err(path, f"invalid JSON: {exc}")
+        return
+    if not isinstance(data, dict):
+        err(path, f"must be a JSON object, got {type(data).__name__}")
+        return
+    for key in data:
+        if key not in SKILLS_SH_TOP_KEYS:
+            hint = ' — the schema key is "groupings" (not "groups")' if key == "groups" else ""
+            err(path, f"unknown top-level key {key!r} (schema is additionalProperties:false; skills.sh ignores the file){hint}")
+    if data.get("notGrouped") not in (None, "top", "bottom"):
+        err(path, f'notGrouped must be "top" or "bottom", got {data.get("notGrouped")!r}')
+    groupings = data.get("groupings")
+    if groupings is None:
+        msg = 'missing "groupings" — REQUIRED by the skills.sh schema'
+        if distributed:
+            err(path, f"{msg}; add every skill under skills/ to exactly one grouping")
+        else:
+            warn(path, f"{msg}; add it when the first skill lands")
+        return
+    if not isinstance(groupings, list) or not 1 <= len(groupings) <= 50:
+        err(path, f'"groupings" must be an array of 1-50 groups, got {type(groupings).__name__} of {len(groupings) if isinstance(groupings, list) else "?"}')
+        return
+    seen: dict[str, int] = {}
+    for i, g in enumerate(groupings):
+        tag = f"groupings[{i}]"
+        if not isinstance(g, dict):
+            err(path, f"{tag}: must be an object")
+            continue
+        for key in g:
+            if key not in SKILLS_SH_GROUP_KEYS:
+                hint = ' — the schema key is "title" (not "name")' if key == "name" else ""
+                err(path, f"{tag}: unknown key {key!r}{hint}")
+        title = g.get("title")
+        if not isinstance(title, str) or not 1 <= len(title) <= 120:
+            err(path, f'{tag}: "title" is required (string, 1-120 chars)')
+        desc = g.get("description")
+        if desc is not None and (not isinstance(desc, str) or len(desc) > 500):
+            err(path, f'{tag}: "description" must be a string of ≤500 chars')
+        skills = g.get("skills")
+        if not isinstance(skills, list) or not 1 <= len(skills) <= 500 or not all(isinstance(s, str) and s for s in skills):
+            err(path, f'{tag}: "skills" is required (array of 1-500 skill-name strings)')
+            continue
+        for s in skills:
+            seen[s] = seen.get(s, 0) + 1
+            if distributed and s not in distributed:
+                err(path, f"{tag}: references unknown skill {s!r} (not under skills/)")
+    for s in distributed:
+        if seen.get(s, 0) == 0:
+            warn(path, f"skill {s!r} is in no grouping — repo convention is exactly one (notGrouped placement applies)")
+        elif seen[s] > 1:
+            warn(path, f"skill {s!r} appears in {seen[s]} groupings — keep exactly one")
+
+
 def exact_case_child(directory: Path, filename: str) -> bool:
     """True iff `filename` exists in `directory` with EXACT casing (APFS-safe)."""
     try:
@@ -336,12 +407,15 @@ def exact_case_child(directory: Path, filename: str) -> bool:
 
 
 def discover_and_check(root: Path) -> None:
+    distributed_names: list[str] = []
     for base, distributed in ((root / "skills", True), (root / ".claude" / "skills", False)):
         if not base.is_dir():
             continue
         for child in sorted(base.iterdir()):
             if not child.is_dir():
                 continue
+            if distributed and exact_case_child(child, "SKILL.md"):
+                distributed_names.append(child.name)
             if exact_case_child(child, "SKILL.md"):
                 check_skill_md(child / "SKILL.md", distributed)
             else:
@@ -350,6 +424,7 @@ def discover_and_check(root: Path) -> None:
                 err(child, f"skill folder has no SKILL.md (exact name, case-sensitive){hint}")
     check_manifest(root / ".claude-plugin" / "plugin.json", ("name", "description", "version"))
     check_manifest(root / ".claude-plugin" / "marketplace.json", ("name", "plugins"))
+    check_skills_sh(root, distributed_names)
 
 
 def classify_distributed(f: Path, root: Path) -> bool:

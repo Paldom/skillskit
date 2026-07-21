@@ -61,7 +61,7 @@ skill"** — or invoke any skill directly with `/<skill-name>`.
 | --- | --- |
 | [skill-from-research](skills/skill-from-research/) | Turns a research pack (reports, notes, transcripts) into installable skills — inventories the pack, verifies claims against primary sources, authors each skill eval-first. |
 | [create-skill-repo](skills/create-skill-repo/) | Scaffolds a complete standalone skills repository — GitHub repo, OSS hygiene, CI with a skills.sh consumer job, validation hooks, distribution manifests; the scaffold overlay stays uncommitted for your review. |
-| [add-skill](skills/add-skill/) | Authors or improves a single skill in any repository via the eval-first workflow — trigger evals before the body, validated before done. |
+| [add-skill](skills/add-skill/) | Authors or improves a single skill in any repository via the eval-first workflow — trigger evals before the body, validated before done; benchmarks via the official skill-creator harness when installed. |
 | [publish-repo](skills/publish-repo/) | Publishes a skills repository to skills.sh deliberately — pre-flight gates, visibility flip, protections, a versioned `gh skill` release, and consumer-style verification. |
 
 ## The flow

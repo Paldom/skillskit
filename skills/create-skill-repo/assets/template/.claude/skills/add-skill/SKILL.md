@@ -51,7 +51,10 @@ treat `$ARGUMENTS` as the skill name or idea to scope in step 1.
 7. **Register.** Add/update the skill's row in the README catalog table, add a
    `CHANGELOG.md` entry, and put the skill in exactly one `skills.sh.json`
    grouping (engaging one-sentence group descriptions — that file is the repo's
-   skills.sh listing copy). Re-check descriptions of sibling skills for new
+   skills.sh listing copy). The schema shape is `"groupings": [{"title": ...,
+   "description": ..., "skills": [...]}]` — the schema rejects other keys
+   (`groups`/`name`) and skills.sh silently ignores a non-conforming file;
+   `make check` validates it. Re-check descriptions of sibling skills for new
    overlap. Do **not** commit or push — leave all changes for the owner to review.
 
 ## Output spec (Definition of Done)

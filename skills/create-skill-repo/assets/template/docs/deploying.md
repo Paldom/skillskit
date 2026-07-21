@@ -15,7 +15,9 @@ walks the same steps.
   users can also `gh skill install {{GITHUB_OWNER}}/{{REPO_NAME}} <skill>
   --pin vX.Y.Z` for version-pinned installs.
 - The repo appears on the skills.sh leaderboard **automatically** after real
-  installs (anonymous telemetry; disabled in CI). There is nothing to submit.
+  installs (anonymous telemetry). There is nothing to submit — but the CLI
+  reports installs ONLY when `DISABLE_TELEMETRY`, `DO_NOT_TRACK`, and CI
+  variables are all fully unset (any value disables, even `0`).
 - `skills.sh.json` at the repo root customizes the skills.sh repo page —
   display-only groupings with titles and descriptions. Changes are picked up
   after telemetry next sees an install, and pages are cached: a correct change
@@ -54,12 +56,21 @@ gh api repos/{{GITHUB_OWNER}}/{{REPO_NAME}}/private-vulnerability-reporting --me
 # 3. Cut a versioned release (matches .claude-plugin/plugin.json) + topics
 gh skill publish --tag v0.1.0
 gh repo edit {{GITHUB_OWNER}}/{{REPO_NAME}} --add-topic skills-sh
+#    (gh < 2.90 has no `gh skill`; equivalent fallback:
+#     gh release create v0.1.0 --generate-notes
+#     gh repo edit {{GITHUB_OWNER}}/{{REPO_NAME}} --add-topic agent-skills --add-topic skills-sh)
 
-# 4. Verify installability exactly like a consumer
-npx skills add {{GITHUB_OWNER}}/{{REPO_NAME}} --list
+# 4. Verify installability exactly like a consumer, and seed the listing.
+#    env -u matters: any DISABLE_TELEMETRY/DO_NOT_TRACK value (even "0")
+#    silences the install report and the repo never gets listed.
+npx skills@latest add {{GITHUB_OWNER}}/{{REPO_NAME}} --list
 mkdir -p /tmp/skills-verify && cd /tmp/skills-verify
-npx skills add {{GITHUB_OWNER}}/{{REPO_NAME}} --skill '*' -a claude-code -y
+env -u DISABLE_TELEMETRY -u DO_NOT_TRACK npx skills@latest add {{GITHUB_OWNER}}/{{REPO_NAME}} --skill '*' -a claude-code -y
 npx skills list -a claude-code
+
+# 5. Confirm the listing (200 within minutes of a valid seed; the search
+#    API and leaderboard lag longer; the /b/ badge is 200 even when unlisted)
+curl -sIL https://skills.sh/{{GITHUB_OWNER}}/{{REPO_NAME}} | head -1
 ```
 
 `gh skill publish` warnings worth knowing: add `license: MIT` to every skill's
@@ -70,7 +81,9 @@ skills, committed by design. The README ships with the install-count badge
 skills.sh page.
 
 The verification install above is also what seeds the first telemetry event —
-run it outside CI (telemetry is auto-disabled in CI) so the repo gets listed.
+run it locally (telemetry is auto-disabled in CI) with the opt-out variables
+unset as shown. A page still 404 after ~15 minutes means the seed never
+reported (re-check the environment); it is not cache lag.
 
 ## Repo page (skills.sh.json)
 
@@ -105,5 +118,8 @@ stable; consumers reinstall from the same source.
 | --- | --- |
 | `No skills found` | Missing/invalid `SKILL.md` (needs `name` + `description`), or skills outside `skills/` |
 | Skill installs but never loads | Check agent path, YAML validity, single-line description |
-| Repo page ignores skills.sh.json | Invalid JSON, repo not yet seen by telemetry, or page cache — install once and wait |
-| Consumers get 404 | Repo still private — visibility is the deployment switch |
+| Page 404 although installs succeed | Telemetry suppressed: `DISABLE_TELEMETRY`/`DO_NOT_TRACK` set (any value) or run in CI — reseed with `env -u DISABLE_TELEMETRY -u DO_NOT_TRACK` |
+| Repo page ignores skills.sh.json | Wrong keys (schema wants `groupings` + `title`, rejects `groups`/`name` — `make check` validates), invalid JSON, or page cache |
+| `gh skill` unknown command | gh < 2.90 — use `gh release create` + `gh repo edit --add-topic` fallback |
+| Old CLI behavior from `npx skills` | Stale npx cache — pin `npx skills@latest` |
+| Consumers get 404 from GitHub | Repo still private — visibility is the deployment switch |
