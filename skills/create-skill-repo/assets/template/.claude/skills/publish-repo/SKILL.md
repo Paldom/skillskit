@@ -3,6 +3,8 @@ name: publish-repo
 description: Publishes this Agent Skills repository to skills.sh - pre-flight checks, public visibility flip, protections (PVR, ruleset), consumer-style install verification, telemetry seeding, and repo-page groupings. Use when the user asks to publish, deploy, release, go public, or get listed on skills.sh. Not for authoring skills or editing scaffold infrastructure.
 disable-model-invocation: true
 argument-hint: [--dry-run]
+metadata:
+  internal: true
 ---
 
 # publish-repo
@@ -35,7 +37,10 @@ Slash-invoked only: it flips repository visibility, which is hard to undo social
    ```
    Triage every `gh skill` warning: add missing `license: MIT` frontmatter; the
    `.claude/skills/` warning is expected here (bundled first-party dev skills,
-   committed by design — not third-party content). Also verify: README catalogue
+   committed by design — not third-party content). Those dev skills carry
+   `metadata.internal: true`, so consumer installs skip them — they must NOT
+   appear in `add . --list`; maintainers opt back in with
+   `INSTALL_INTERNAL_SKILLS=1` or `--include-internal`. Also verify: README catalogue
    + CHANGELOG current; every skill description is benefit-led (it is the listing
    copy); CI green on the latest commit.
 2. **Manual blockers — require explicit user confirmation, never assume:**

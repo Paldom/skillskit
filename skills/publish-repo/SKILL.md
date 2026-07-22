@@ -41,7 +41,10 @@ undo (everything ever pushed becomes visible).
    ignores a non-conforming file.
    Triage every `gh skill` warning: add missing `license:` frontmatter; a
    `.claude/skills/` warning is expected when the repo deliberately bundles its
-   own first-party dev skills. Verify README catalogue + CHANGELOG current and
+   own first-party dev skills. Bundled dev skills must carry
+   `metadata.internal: true` in their frontmatter so consumer installs skip
+   them (they must not appear in `add . --list`; maintainers opt back in with
+   `INSTALL_INTERNAL_SKILLS=1` or `--include-internal`). Verify README catalogue + CHANGELOG current and
    every skill description benefit-led (it is the listing copy); CI green.
 2. **Manual blockers — require explicit user confirmation, never assume:**
    - full-history secret scan (gitleaks/trufflehog) done;
