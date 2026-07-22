@@ -33,7 +33,7 @@ walks the same steps.
    install a consumer would:
    ```bash
    npx skills add . --list                       # every skill discovered?
-   npx skills add <repo-root> --skill '*' -a claude-code -y   # installs clean?
+   npx skills add <repo-root> -a claude-code -y   # consumer install clean? (no wildcard: '*' opts into internal dev skills)
    ```
 5. Manual blockers for going public: full-history secret scan
    (gitleaks/trufflehog) and a personal/private-file review — no tool here
@@ -65,7 +65,7 @@ gh repo edit {{GITHUB_OWNER}}/{{REPO_NAME}} --add-topic skills-sh
 #    silences the install report and the repo never gets listed.
 npx skills@latest add {{GITHUB_OWNER}}/{{REPO_NAME}} --list
 mkdir -p /tmp/skills-verify && cd /tmp/skills-verify
-env -u DISABLE_TELEMETRY -u DO_NOT_TRACK npx skills@latest add {{GITHUB_OWNER}}/{{REPO_NAME}} --skill '*' -a claude-code -y
+env -u DISABLE_TELEMETRY -u DO_NOT_TRACK npx skills@latest add {{GITHUB_OWNER}}/{{REPO_NAME}} -a claude-code -y   # NO --skill '*': the wildcard opts into internal dev skills
 npx skills list -a claude-code
 
 # 5. Confirm the listing (200 within minutes of a valid seed; the search

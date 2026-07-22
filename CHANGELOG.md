@@ -25,6 +25,7 @@ versioning: [SemVer](https://semver.org) on the plugin manifest
 - Initial skillskit release: create-skill-repo, add-skill, publish-repo, skill-from-research.
 
 ### Changed
+- seed/verify install commands (publish-repo + deploying docs, root + template): dropped `--skill '*'` — the wildcard deliberately opts into internal skills; plain `add` is the consumer-faithful install.
 - bundled dev skills (template add-skill/publish-repo): marked `metadata.internal: true` so skills.sh consumer installs skip them (CLI honors it; maintainers opt in with INSTALL_INTERNAL_SKILLS=1 or --include-internal); publish-repo pre-flight now asserts they stay out of `add . --list`.
 - publish-repo and deploying docs (root + template): document skills.sh burst throttling — when publishing several repos, seed one at a time ~5 minutes apart (burst install events from one machine are throttled server-side; audit runs, listing never materializes).
 - publish-repo (and the template's bundled copy): seamless-deploy fixes learned from a live deployment — seed installs must run with `env -u DISABLE_TELEMETRY -u DO_NOT_TRACK` (any value disables the install report, even `0`), pin `npx skills@latest` against stale npx caches, `gh` < 2.90 fallback for the release step (`gh release create` + topics), concrete listing verification (canonical page URL within minutes; badge 200 proves nothing; 404 >15 min = suppressed telemetry, not cache), and a note that agent harnesses may permission-block public-surface commands.
