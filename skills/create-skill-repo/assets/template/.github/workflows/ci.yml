@@ -43,7 +43,10 @@ jobs:
           fi
           python3 -c "import json; json.load(open('skills.sh.json'))"
           # Validation-only tool; pinned for reproducibility (bump deliberately).
-          npx -y skills@1.5.14 add . --list
+          npx -y skills@1.5.19 add . --list | tee /tmp/skills-list.txt
+          # Leak gate: bundled dev skills are metadata.internal and must never
+          # be consumer-visible (no --skill '*' below: the wildcard opts them in).
+          ! grep -E '^[^A-Za-z0-9]*(add-skill|publish-repo)[[:space:]]*$' /tmp/skills-list.txt
           mkdir -p /tmp/skills-smoke && cd /tmp/skills-smoke
-          npx -y skills@1.5.14 add "$GITHUB_WORKSPACE" --skill '*' -a claude-code -y
-          npx -y skills@1.5.14 list -a claude-code
+          npx -y skills@1.5.19 add "$GITHUB_WORKSPACE" -a claude-code -y
+          npx -y skills@1.5.19 list -a claude-code

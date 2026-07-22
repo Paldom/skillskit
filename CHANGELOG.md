@@ -25,6 +25,7 @@ versioning: [SemVer](https://semver.org) on the plugin manifest
 - Initial skillskit release: create-skill-repo, add-skill, publish-repo, skill-from-research.
 
 ### Changed
+- CI (root + template): skills CLI pin bumped to 1.5.19; consumer install test drops the `--skill '*'` wildcard; the template's skills-sh job gains a leak gate that fails when internal dev skills (add-skill/publish-repo) appear in consumer discovery.
 - seed/verify install commands (publish-repo + deploying docs, root + template): dropped `--skill '*'` — the wildcard deliberately opts into internal skills; plain `add` is the consumer-faithful install.
 - bundled dev skills (template add-skill/publish-repo): marked `metadata.internal: true` so skills.sh consumer installs skip them (CLI honors it; maintainers opt in with INSTALL_INTERNAL_SKILLS=1 or --include-internal); publish-repo pre-flight now asserts they stay out of `add . --list`.
 - publish-repo and deploying docs (root + template): document skills.sh burst throttling — when publishing several repos, seed one at a time ~5 minutes apart (burst install events from one machine are throttled server-side; audit runs, listing never materializes).

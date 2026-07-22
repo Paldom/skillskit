@@ -43,13 +43,13 @@ jobs:
           fi
           python3 -c "import json; json.load(open('skills.sh.json'))"
           # Validation-only tool; pinned for reproducibility (bump deliberately).
-          npx -y skills@1.5.14 add . --list
+          npx -y skills@1.5.19 add . --list
           mkdir -p /tmp/skills-smoke && cd /tmp/skills-smoke
-          npx -y skills@1.5.14 add "$GITHUB_WORKSPACE" --skill '*' -a claude-code -y
-          npx -y skills@1.5.14 list -a claude-code
+          npx -y skills@1.5.19 add "$GITHUB_WORKSPACE" -a claude-code -y
+          npx -y skills@1.5.19 list -a claude-code
           # every skill must also install and self-contain in ISOLATION
           for s in $(ls "$GITHUB_WORKSPACE/skills"); do
             d=$(mktemp -d) && cd "$d"
-            npx -y skills@1.5.14 add "$GITHUB_WORKSPACE" --skill "$s" -a claude-code -y
+            npx -y skills@1.5.19 add "$GITHUB_WORKSPACE" --skill "$s" -a claude-code -y
             find . -name SKILL.md | grep -q . || { echo "isolated install of $s produced no SKILL.md"; exit 1; }
           done
