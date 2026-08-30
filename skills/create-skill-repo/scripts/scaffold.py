@@ -77,7 +77,7 @@ def run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess:
     # only ever in argument position, never as the executable, and no shell — so
     # a repo name containing shell metacharacters is inert here.
     try:
-        return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, check=False)  # noqa: S603
+        return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, check=False)
     except (OSError, FileNotFoundError) as exc:
         return subprocess.CompletedProcess(cmd, 127, stdout="", stderr=f"{cmd[0]}: {exc}")
 

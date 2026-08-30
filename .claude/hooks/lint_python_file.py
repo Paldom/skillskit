@@ -71,7 +71,7 @@ def main() -> int:
         try:
             # S603: fixed argv — a resolved ruff, literal flags, and the edited
             # file's path in argument position. No shell.
-            proc = subprocess.run(  # noqa: S603
+            proc = subprocess.run(
                 [*prefix, *args, file_path],
                 capture_output=True,
                 text=True,

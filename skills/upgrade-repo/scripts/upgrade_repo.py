@@ -11,8 +11,11 @@ Two tiers, because the two kinds of file cannot be treated alike:
   MANAGED    infrastructure with no per-repo content — safe to overwrite with
              --apply once the user has seen the list.
   CUSTOMIZED files a repo is expected to edit (Makefile, CI, AGENTS.md,
-             settings). Reported as a diff, NEVER written: merging them is a
-             judgement call, and the upgrade log says what to merge.
+             settings, toolchain config). One that EXISTS and differs is never
+             written — merging it is a judgement call, and the upgrade log says
+             what to merge. One the repo simply does not have yet is created:
+             there is no customization to destroy, and without that a repo could
+             never adopt a config file introduced after it was scaffolded.
 
 Everything else is out of scope and untouched — above all `skills/`, which is
 the repo's own product, plus README, CHANGELOG, skills.sh.json and the plugin
@@ -191,17 +194,22 @@ def main() -> int:
                 print(f"  ? {rel}")
         return 0
 
-    if managed_diff or managed_missing:
+    if managed_diff or managed_missing or custom_missing:
         verb = "applying" if args.apply else "would apply"
-        print(f"MANAGED ({verb} — safe to overwrite, no per-repo content):")
+        print(f"MANAGED ({verb} — safe to write, nothing of yours is lost):")
         for rel in managed_missing:
             print(f"  + {rel}  (missing — new since this repo was scaffolded)")
         for rel in managed_diff:
             print(f"  ~ {rel}")
-    if custom_diff or custom_missing:
+        # A customizable file the repo does not have yet has no customization to
+        # destroy, so creating it is safe. Only a file that EXISTS and differs is
+        # a judgement call — otherwise a repo could never adopt a new config at all.
+        for rel in custom_missing:
+            print(f"  + {rel}  (customizable, but absent — nothing to preserve)")
+    if custom_diff:
         print("\nCUSTOMIZED (yours to merge — never written, and expected to keep")
         print("differing once merged; check each against the upgrade log):")
-        for rel in custom_missing + custom_diff:
+        for rel in custom_diff:
             print(f"  ! {rel}")
             print(f"      diff -u {repo / rel} {template / rel}")
 
@@ -215,15 +223,15 @@ def main() -> int:
         print("\nReport only. Re-run with --apply to write the MANAGED tier.")
         return 1
 
-    for rel in managed_missing + managed_diff:
+    for rel in managed_missing + managed_diff + custom_missing:
         source, target = template / rel, repo / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)
         if os.access(source, os.X_OK):
             target.chmod(target.stat().st_mode | 0o111)
     print(
-        f"\nApplied {len(managed_missing) + len(managed_diff)} managed file(s). "
-        "Nothing under skills/ was touched."
+        f"\nApplied {len(managed_missing) + len(managed_diff) + len(custom_missing)} file(s). "
+        "Nothing under skills/ was touched, and no existing customized file was overwritten."
     )
     print("Next: read the upgrade log for manual follow-ups, then run `make check`.")
     return 0

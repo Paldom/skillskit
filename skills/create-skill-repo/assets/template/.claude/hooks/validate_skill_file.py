@@ -46,7 +46,7 @@ def main() -> int:
     # S603: argv is a fixed list — this interpreter, a path we just confirmed is a
     # file in this repo, and the edited file's path. No shell, so nothing in
     # file_path can be interpreted as a command.
-    proc = subprocess.run(  # noqa: S603
+    proc = subprocess.run(
         [sys.executable, validator, "--file", file_path, "--root", project_dir],
         capture_output=True,
         text=True,

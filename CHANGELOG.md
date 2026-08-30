@@ -7,6 +7,24 @@ versioning: [SemVer](https://semver.org) on the plugin manifest
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-08-31
+
+### Changed
+- Ruff defaults tuned to the domain after measuring the gate against 21 generated
+  repos: `S101`, `S603` and `S607` are ignored with their reasons recorded. They
+  produced ~420 of ~790 findings and not one real defect — asserts in `--self-test`
+  blocks and argv-list `subprocess` calls are what every skill script is made of.
+  The rest of the bandit rules stay on and do find real problems (`S310`, `S314`,
+  `S608` all appear in the fleet), and the dangerous cases are errors in
+  `validate_skills.py`'s own security scan rather than lint warnings.
+
+### Fixed
+- `upgrade-repo` could never introduce a config file to an existing repo: a
+  *customizable* file that was simply absent was reported and skipped forever, so no
+  scaffolded repo could adopt `ruff.toml` or `.pre-commit-config.yaml`. Absent now
+  means created — there is no customization to destroy — while a file that exists and
+  differs is still never overwritten.
+
 ## [0.2.0] - 2026-08-31
 
 ### Added
@@ -133,4 +151,5 @@ versioning: [SemVer](https://semver.org) on the plugin manifest
 - add-skill (root + template) and docs/deploying.md (root + template): document the exact `skills.sh.json` schema shape and the telemetry/gh-version/npx-cache gotchas in the deploy path and troubleshooting table.
 - add-skill: new Measure step — delegates quality-eval runs, baseline benchmarking, and description optimization to Anthropic's official skill-creator skill (`skill-creator:skill-creator`) as a subskill when installed; the manual protocol in `references/evals.md` remains the fallback.
 
+[0.2.1]: https://github.com/Paldom/skillskit/releases/tag/v0.2.1
 [0.2.0]: https://github.com/Paldom/skillskit/releases/tag/v0.2.0
