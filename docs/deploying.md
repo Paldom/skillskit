@@ -49,9 +49,11 @@ gh skill publish --dry-run
 gh repo edit Paldom/skillskit --visibility public --accept-visibility-change-consequences
 
 # 2. Turn on the public-repo protections
-#    (PVR + branch ruleset + a v* tag ruleset for immutable releases -
-#     see the SECURITY.md note and repo-protections guidance)
+#    (PVR + secret scanning + branch ruleset + a v* tag ruleset for immutable
+#     releases - see the SECURITY.md note and repo-protections guidance)
 gh api repos/Paldom/skillskit/private-vulnerability-reporting --method PUT
+gh repo edit Paldom/skillskit --enable-secret-scanning
+gh repo edit Paldom/skillskit --enable-secret-scanning-push-protection
 
 # 3. Cut a versioned release (matches .claude-plugin/plugin.json) + topics
 gh skill publish --tag v0.1.0
@@ -76,7 +78,14 @@ curl -sIL https://skills.sh/Paldom/skillskit | head -1
 `gh skill publish` warnings worth knowing: add `license: MIT` to every skill's
 frontmatter (recommended field, scaffolded by default here); the
 `.claude/skills/` warning is expected — those are this repo's own bundled dev
-skills, committed by design. The README ships with the install-count badge
+skills, committed by design. The `.agents/skills/ … should be added to
+.gitignore` warning is expected too, and the reason matters: the check assumes
+that directory holds *other authors'* installed skills, whereas here it is five
+symlinks pointing back at this repo's own `skills/`, committed so Codex and other
+Agent-Skills-standard agents discover them in-checkout. Gitignoring it would
+delete that feature to silence a heuristic that does not apply. The secret-scanning
+and tag-ruleset warnings are real — step 2 above clears the first two, and the tag
+ruleset is set in Settings → Rules. The README ships with the install-count badge
 (`https://skills.sh/b/Paldom/skillskit`) linking to the repo's
 skills.sh page.
 

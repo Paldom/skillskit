@@ -18,12 +18,25 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Validate skills, evals, and plugin manifests
+      - name: Validate skills, evals, security rules, and plugin manifests
         run: python3 scripts/validate_skills.py
-      - name: Validate GitHub workflow files
+      - name: Score trigger evals (routing, collisions, rank-1 ratchet)
+        run: python3 scripts/run_evals.py --min-rank1 85
+      - name: Self-check the scorer, the security rules, and the scaffold template
         run: |
-          pip install --quiet -r requirements-dev.txt
-          check-jsonschema --builtin-schema vendor.github-workflows .github/workflows/*.yml
+          python3 scripts/test_run_evals.py
+          python3 scripts/test_validate_skills.py
+          python3 scripts/check_sync.py
+      - name: Install dev tooling
+        run: pip install --quiet -r requirements-dev.txt
+      # Same pinned ruff as .pre-commit-config.yaml and requirements-dev.txt, so a
+      # clean commit hook cannot mean a red CI.
+      - name: Lint and format check (ruff)
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: Validate GitHub workflow files
+        run: check-jsonschema --builtin-schema vendor.github-workflows .github/workflows/*.yml
 
   # Mirrors what skills.sh consumers run: discoverability + a real install.
   skills-sh:

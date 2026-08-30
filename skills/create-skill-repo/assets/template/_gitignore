@@ -15,5 +15,8 @@ __pycache__/
 *.py[cod]
 .venv/
 
+# Tool caches
+.ruff_cache/
+
 # Claude Code per-machine settings
 .claude/settings.local.json

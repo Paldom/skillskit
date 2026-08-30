@@ -9,14 +9,29 @@ and per-file read errors. Exit 1 when the pack contains no readable content
 (so a pasted-but-empty report fails loudly, before hours of work). Reads are
 capped at 8 MB per file (larger files are sampled and flagged). Stdlib only.
 """
+
 from __future__ import annotations
 
 import hashlib
 import sys
 from pathlib import Path
 
-TEXT_EXT = {".md", ".txt", ".rst", ".json", ".jsonl", ".yaml", ".yml", ".csv",
-            ".html", ".htm", ".xml", ".log", ".adoc", ""}
+TEXT_EXT = {
+    ".md",
+    ".txt",
+    ".rst",
+    ".json",
+    ".jsonl",
+    ".yaml",
+    ".yml",
+    ".csv",
+    ".html",
+    ".htm",
+    ".xml",
+    ".log",
+    ".adoc",
+    "",
+}
 SKIP_NAMES = {".DS_Store", "Thumbs.db"}
 SKIP_DIRS = {".git", "node_modules", "__pycache__", ".venv", "venv"}
 READ_CAP = 8 * 1024 * 1024  # bytes
@@ -112,9 +127,11 @@ def main() -> int:
     for f in oversized:
         print(f"OVERSIZED: {f} exceeds the 8 MB cap - inventoried from a sample; read it in chunks")
 
-    print(f"\nTOTAL: {len(files)} file(s), ~{readable_words} readable words"
-          f" ({len(empties)} empty, {len(dups)} duplicate, {len(unreadable)} unreadable,"
-          f" {len(escapes)} escaping symlink(s), {len(errors)} error(s))")
+    print(
+        f"\nTOTAL: {len(files)} file(s), ~{readable_words} readable words"
+        f" ({len(empties)} empty, {len(dups)} duplicate, {len(unreadable)} unreadable,"
+        f" {len(escapes)} escaping symlink(s), {len(errors)} error(s))"
+    )
     if readable_words == 0:
         print("ERROR: no readable content in the pack - nothing to distill")
         return 1

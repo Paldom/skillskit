@@ -40,6 +40,14 @@ not a skill problem.
   commands run, exclusions respected — not exact output text and not vibes
   ("is helpful"); vague assertions turn any grader into a coin flip.
 
+Both trigger counts are waived for **user-invoked** skills
+(`disable-model-invocation: true`) — nothing routes them, so trigger cases have
+nothing to prove. Their `quality` cases still apply. Where the repo ships
+`scripts/run_evals.py` (`make evals`), it scores the trigger cases mechanically:
+vocabulary overlap, top-K rank against sibling descriptions, near-duplicate
+descriptions, and a rank-1 ratchet. Passing it is necessary, not sufficient — it
+is a lexical proxy, so the protocol below still decides.
+
 ## Automated harness (official skill-creator)
 
 If the official `skill-creator` skill is installed (plugin

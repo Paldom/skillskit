@@ -39,10 +39,15 @@ RESERVED = ("claude", "anthropic")
 DEFAULT_TOPICS = ("agent-skills", "claude-code", "skills", "skills-sh")
 SKIP_FILES = {".DS_Store"}
 PLACEHOLDER_RE = re.compile(r"\{\{[A-Z_]+\}\}")
+# The generated README carries a "Built with skillskit" footer between these
+# markers. --no-attribution removes it: attribution is a courtesy the owner of the
+# new repo can decline, and nothing in the gate ever checks for it.
+ATTRIBUTION_RE = re.compile(r"\n*<!-- attribution:start -->.*?<!-- attribution:end -->\n*", re.S)
 
 
-def fail(msg: str, dest: Path | None = None, keep: bool = False,
-         remote_note: str | None = None) -> None:
+def fail(
+    msg: str, dest: Path | None = None, keep: bool = False, remote_note: str | None = None
+) -> None:
     print(f"ERROR: {msg}", file=sys.stderr)
     if dest is not None and dest.exists() and not keep:
         shutil.rmtree(dest, ignore_errors=True)
@@ -55,9 +60,11 @@ def fail(msg: str, dest: Path | None = None, keep: bool = False,
 
 
 def delete_hint(remote: str) -> str:
-    return ("  Delete it with: gh auth refresh -h github.com -s delete_repo"
-            f" && gh repo delete {remote} --yes\n"
-            "  (or via the repository's Settings page on GitHub)")
+    return (
+        "  Delete it with: gh auth refresh -h github.com -s delete_repo"
+        f" && gh repo delete {remote} --yes\n"
+        "  (or via the repository's Settings page on GitHub)"
+    )
 
 
 def bundled_template(script_path: Path) -> Path:
@@ -66,8 +73,11 @@ def bundled_template(script_path: Path) -> Path:
 
 
 def run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess:
+    # S603: every caller passes a literal argv list (`git`, `gh`) with user input
+    # only ever in argument position, never as the executable, and no shell — so
+    # a repo name containing shell metacharacters is inert here.
     try:
-        return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+        return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, check=False)  # noqa: S603
     except (OSError, FileNotFoundError) as exc:
         return subprocess.CompletedProcess(cmd, 127, stdout="", stderr=f"{cmd[0]}: {exc}")
 
@@ -84,12 +94,20 @@ def is_our_clone(dest: Path, remote: str) -> bool:
 def merged_gitignore(existing: str, ours: str) -> str:
     """Append our template .gitignore to the GitHub-generated tech one, skipping
     pattern lines the tech template already covers (comments are kept)."""
-    have = {ln.strip() for ln in existing.splitlines()
-            if ln.strip() and not ln.lstrip().startswith("#")}
-    block = [ln for ln in ours.splitlines()
-             if not (ln.strip() and not ln.lstrip().startswith("#") and ln.strip() in have)]
-    return (existing.rstrip("\n") + "\n\n# --- Agent Skills scaffold ---\n"
-            + "\n".join(block).strip("\n") + "\n")
+    have = {
+        ln.strip() for ln in existing.splitlines() if ln.strip() and not ln.lstrip().startswith("#")
+    }
+    block = [
+        ln
+        for ln in ours.splitlines()
+        if not (ln.strip() and not ln.lstrip().startswith("#") and ln.strip() in have)
+    ]
+    return (
+        existing.rstrip("\n")
+        + "\n\n# --- Agent Skills scaffold ---\n"
+        + "\n".join(block).strip("\n")
+        + "\n"
+    )
 
 
 def gh_auth_check(cwd: Path) -> None:
@@ -100,32 +118,66 @@ def gh_auth_check(cwd: Path) -> None:
     if auth.returncode != 0 and "unknown flag" in (auth.stderr or "").lower():
         auth = run(["gh", "auth", "status", "--hostname", "github.com"], cwd)
     if auth.returncode != 0:
-        fail("gh is not authenticated — run `gh auth login` first (or use --local-only)\n"
-             + (auth.stderr or auth.stdout).strip())
-    scopes_line = next((ln for ln in (auth.stdout + auth.stderr).splitlines()
-                        if "Token scopes:" in ln), "")
+        fail(
+            "gh is not authenticated — run `gh auth login` first (or use --local-only)\n"
+            + (auth.stderr or auth.stdout).strip()
+        )
+    scopes_line = next(
+        (ln for ln in (auth.stdout + auth.stderr).splitlines() if "Token scopes:" in ln), ""
+    )
     if scopes_line and "workflow" not in scopes_line:
-        fail("the gh token lacks the `workflow` scope (needed to push .github/workflows/) — "
-             "run: gh auth refresh -h github.com -s workflow")
+        fail(
+            "the gh token lacks the `workflow` scope (needed to push .github/workflows/) — "
+            "run: gh auth refresh -h github.com -s workflow"
+        )
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("name", help="kebab-case repo name, e.g. python-skills or icon-designer")
-    ap.add_argument("--description", required=True,
-                    help="one professional, benefit-led sentence; becomes the GitHub repo description and README intro")
-    ap.add_argument("--idea", required=True, help="the user's high-level intent; seeds .local/PROMPT.md")
-    ap.add_argument("--owner", default=None, help="GitHub owner/org (default: the authenticated gh user)")
-    ap.add_argument("--gitignore", default="Python", metavar="TEMPLATE",
-                    help="GitHub .gitignore template for the repo's technology (default: Python; see gh api gitignore/templates)")
-    ap.add_argument("--public", action="store_true", help="create the repo public (default: private)")
-    ap.add_argument("--topics", default="", help="extra comma-separated repo topics (added to the defaults)")
-    ap.add_argument("--dest", type=Path, default=None, help="parent directory (default: current directory)")
+    ap.add_argument(
+        "--description",
+        required=True,
+        help="one professional, benefit-led sentence; becomes the GitHub repo description and README intro",
+    )
+    ap.add_argument(
+        "--idea", required=True, help="the user's high-level intent; seeds .local/PROMPT.md"
+    )
+    ap.add_argument(
+        "--owner", default=None, help="GitHub owner/org (default: the authenticated gh user)"
+    )
+    ap.add_argument(
+        "--gitignore",
+        default="Python",
+        metavar="TEMPLATE",
+        help="GitHub .gitignore template for the repo's technology (default: Python; see gh api gitignore/templates)",
+    )
+    ap.add_argument(
+        "--public", action="store_true", help="create the repo public (default: private)"
+    )
+    ap.add_argument(
+        "--topics", default="", help="extra comma-separated repo topics (added to the defaults)"
+    )
+    ap.add_argument(
+        "--dest", type=Path, default=None, help="parent directory (default: current directory)"
+    )
     ap.add_argument("--template", type=Path, default=None, help="template directory override")
-    ap.add_argument("--local-only", action="store_true",
-                    help="offline mode: local folder + git init, no GitHub repo")
-    ap.add_argument("--no-git", action="store_true", help="implies --local-only and skips git init/commit")
-    ap.add_argument("--keep-on-fail", action="store_true", help="keep the folder if scaffolding fails")
+    ap.add_argument(
+        "--local-only",
+        action="store_true",
+        help="offline mode: local folder + git init, no GitHub repo",
+    )
+    ap.add_argument(
+        "--no-git", action="store_true", help="implies --local-only and skips git init/commit"
+    )
+    ap.add_argument(
+        "--keep-on-fail", action="store_true", help="keep the folder if scaffolding fails"
+    )
+    ap.add_argument(
+        "--no-attribution",
+        action="store_true",
+        help="omit the 'Built with skillskit' footer from the generated README",
+    )
     args = ap.parse_args()
     if args.no_git:
         args.local_only = True
@@ -143,15 +195,21 @@ def main() -> int:
     if len(description) < 20 or any(ord(c) < 32 or ord(c) == 127 for c in description):
         fail("--description must be a single substantial line (>= 20 chars, no control characters)")
     if len(description) > 350:
-        fail(f"--description is {len(description)} chars (max 350 — it becomes the GitHub repo description)")
+        fail(
+            f"--description is {len(description)} chars (max 350 — it becomes the GitHub repo description)"
+        )
     idea = args.idea.strip()
     if len(idea) < 10 or any((ord(c) < 32 and c != "\n") or ord(c) == 127 for c in idea):
-        fail("--idea must carry real intent (>= 10 chars; newlines allowed, other control characters not)")
+        fail(
+            "--idea must carry real intent (>= 10 chars; newlines allowed, other control characters not)"
+        )
     for label, value in (("--description", description), ("--idea", idea)):
         m = PLACEHOLDER_RE.search(value)
         if m:
-            fail(f"{label} contains {m.group(0)!r}, which collides with the template's "
-                 "{{TOKEN}} placeholders — rephrase it (e.g. lowercase or spaced braces)")
+            fail(
+                f"{label} contains {m.group(0)!r}, which collides with the template's "
+                "{{TOKEN}} placeholders — rephrase it (e.g. lowercase or spaced braces)"
+            )
     if args.owner:
         owner = args.owner.strip()
     elif args.local_only:
@@ -165,11 +223,15 @@ def main() -> int:
         fail(f"--owner {owner!r} is not a valid GitHub owner (letters/digits/hyphens, no spaces)")
     gitignore_tpl = args.gitignore.strip()
     if not GITIGNORE_RE.match(gitignore_tpl):
-        fail(f"--gitignore {gitignore_tpl!r} is not a valid template name (see gh api gitignore/templates)")
+        fail(
+            f"--gitignore {gitignore_tpl!r} is not a valid template name (see gh api gitignore/templates)"
+        )
     topics = list(DEFAULT_TOPICS) + [t.strip() for t in args.topics.split(",") if t.strip()]
     for t in topics:
         if not TOPIC_RE.match(t):
-            fail(f"topic {t!r} is invalid (lowercase letters/digits/hyphens, must start alphanumeric, <= 35 chars)")
+            fail(
+                f"topic {t!r} is invalid (lowercase letters/digits/hyphens, must start alphanumeric, <= 35 chars)"
+            )
 
     if args.template:
         template = args.template.resolve()
@@ -184,8 +246,10 @@ def main() -> int:
     if prompt_tpl.is_file():
         final_len = len(prompt_tpl.read_text(encoding="utf-8").replace("{{IDEA}}", idea))
         if final_len > 4000:
-            fail(f"the seeded .local/PROMPT.md would be {final_len} chars (max 4000) - "
-                 f"shorten --idea by at least {final_len - 4000} chars or trim the template prompt")
+            fail(
+                f"the seeded .local/PROMPT.md would be {final_len} chars (max 4000) - "
+                f"shorten --idea by at least {final_len - 4000} chars or trim the template prompt"
+            )
     dest_parent = (args.dest or Path.cwd()).resolve()
     if not dest_parent.is_dir():
         fail(f"--dest {dest_parent} does not exist or is not a directory")
@@ -210,56 +274,97 @@ def main() -> int:
             fail("gh CLI not found — install it (https://cli.github.com) or use --local-only")
         gh_auth_check(dest_parent)
         if run(["gh", "repo", "view", remote], dest_parent).returncode == 0:
-            fail(f"https://github.com/{remote} already exists — pick another name or delete it first")
+            fail(
+                f"https://github.com/{remote} already exists — pick another name or delete it first"
+            )
         known = run(["gh", "api", "gitignore/templates", "--jq", ".[]"], dest_parent)
         if known.returncode == 0 and gitignore_tpl not in known.stdout.split():
-            fail(f"--gitignore {gitignore_tpl!r} is not a GitHub template "
-                 f"(names are case-sensitive; see gh api gitignore/templates)")
+            fail(
+                f"--gitignore {gitignore_tpl!r} is not a GitHub template "
+                f"(names are case-sensitive; see gh api gitignore/templates)"
+            )
         if dest.exists():  # re-check right before creating (shrink the race window)
             fail(f"{dest} appeared while preparing — pick another name or remove it first")
 
         visibility = "--public" if args.public else "--private"
-        proc = run(["gh", "repo", "create", remote, visibility,
-                    "--description", description, "--gitignore", gitignore_tpl,
-                    "--license", "mit", "--add-readme", "--clone"], dest_parent)
+        proc = run(
+            [
+                "gh",
+                "repo",
+                "create",
+                remote,
+                visibility,
+                "--description",
+                description,
+                "--gitignore",
+                gitignore_tpl,
+                "--license",
+                "mit",
+                "--add-readme",
+                "--clone",
+            ],
+            dest_parent,
+        )
         if proc.returncode != 0:
             # Never delete or claim ownership of a remote we can't prove this run
             # created; only clean the local folder if it is provably our clone.
             note = None
             if run(["gh", "repo", "view", remote], dest_parent).returncode == 0:
-                note = (f"NOTE: https://github.com/{remote} exists on GitHub. If this failed run "
-                        f"created it (it did not exist during preflight), remove it:\n{delete_hint(remote)}")
+                note = (
+                    f"NOTE: https://github.com/{remote} exists on GitHub. If this failed run "
+                    f"created it (it did not exist during preflight), remove it:\n{delete_hint(remote)}"
+                )
             local = dest if is_our_clone(dest, remote) else None
             if local is None and dest.exists():
                 print(f"NOTE: left {dest} untouched (not created by this run)", file=sys.stderr)
-            fail(f"gh repo create failed: {(proc.stderr or proc.stdout).strip()}",
-                 local, args.keep_on_fail, note)
+            fail(
+                f"gh repo create failed: {(proc.stderr or proc.stdout).strip()}",
+                local,
+                args.keep_on_fail,
+                note,
+            )
         created_remote = remote
         print((proc.stdout or "").strip() or f"Created https://github.com/{remote}")
         if not (dest / ".git").is_dir():
-            fail(f"gh repo create did not clone into {dest} as expected",
-                 dest if is_our_clone(dest, remote) else None, args.keep_on_fail,
-                 f"NOTE: the remote repo https://github.com/{remote} was created by this run "
-                 f"and still exists.\n{delete_hint(remote)}")
+            fail(
+                f"gh repo create did not clone into {dest} as expected",
+                dest if is_our_clone(dest, remote) else None,
+                args.keep_on_fail,
+                f"NOTE: the remote repo https://github.com/{remote} was created by this run "
+                f"and still exists.\n{delete_hint(remote)}",
+            )
     else:
         try:
             dest.mkdir(parents=False, exist_ok=False)
         except OSError as exc:
             fail(f"could not create {dest}: {exc}")
 
-    remote_note = (f"NOTE: the remote repo https://github.com/{remote} was created by this run "
-                   f"and still exists.\n{delete_hint(remote)}") if created_remote else None
+    remote_note = (
+        (
+            f"NOTE: the remote repo https://github.com/{remote} was created by this run "
+            f"and still exists.\n{delete_hint(remote)}"
+        )
+        if created_remote
+        else None
+    )
     try:
         scaffold_into(template, dest, tokens, args, created_remote, remote_note, topics)
     except SystemExit:
         raise
-    except Exception as exc:  # noqa: BLE001 - cleanup guarantee over specificity
+    except Exception as exc:  # broad on purpose: the cleanup guarantee outranks specificity
         fail(f"unexpected error while scaffolding: {exc!r}", dest, args.keep_on_fail, remote_note)
     return 0
 
 
-def scaffold_into(template: Path, dest: Path, tokens: dict, args,
-                  remote: str | None, remote_note: str | None, topics: list[str]) -> None:
+def scaffold_into(
+    template: Path,
+    dest: Path,
+    tokens: dict,
+    args,
+    remote: str | None,
+    remote_note: str | None,
+    topics: list[str],
+) -> None:
     name = tokens["{{REPO_NAME}}"]
     owner = tokens["{{GITHUB_OWNER}}"]
     keep = args.keep_on_fail
@@ -286,6 +391,8 @@ def scaffold_into(template: Path, dest: Path, tokens: dict, args,
             text = text.replace(token, json.dumps(value)[1:-1] if is_json else value)
         if rel == Path(".gitignore") and target.is_file():
             text = merged_gitignore(target.read_text(encoding="utf-8"), text)
+        if rel == Path("README.md") and args.no_attribution:
+            text = ATTRIBUTION_RE.sub("", text)
         target.write_text(text, encoding="utf-8")
         for m in PLACEHOLDER_RE.finditer(text):
             leftover.append(f"{rel}: {m.group(0)}")
@@ -317,13 +424,21 @@ def scaffold_into(template: Path, dest: Path, tokens: dict, args,
                     fail(f"git init failed: {proc.stderr.strip()}", dest, keep, remote_note)
                 proc = run(["git", "symbolic-ref", "HEAD", "refs/heads/main"], dest)
                 if proc.returncode != 0:
-                    fail(f"could not set default branch to main: {proc.stderr.strip()}", dest, keep, remote_note)
+                    fail(
+                        f"could not set default branch to main: {proc.stderr.strip()}",
+                        dest,
+                        keep,
+                        remote_note,
+                    )
         else:
             got = run(["git", "symbolic-ref", "--short", "HEAD"], dest).stdout.strip()
             branch = got or branch
             if branch != "main":
-                print(f"WARNING: default branch is {branch!r}, not 'main' — CI push triggers and "
-                      "the ruleset advice below assume main; consider renaming.", file=sys.stderr)
+                print(
+                    f"WARNING: default branch is {branch!r}, not 'main' — CI push triggers and "
+                    "the ruleset advice below assume main; consider renaming.",
+                    file=sys.stderr,
+                )
 
     # ---- repo polish (non-fatal): topics improve GitHub discoverability ----
     if remote is not None:
@@ -332,32 +447,47 @@ def scaffold_into(template: Path, dest: Path, tokens: dict, args,
             cmd += ["--add-topic", t]
         proc = run(cmd, dest)
         if proc.returncode != 0:
-            print(f"WARNING: could not set topics ({(proc.stderr or proc.stdout).strip()}) — "
-                  f"set them later with: gh repo edit {remote} --add-topic <topic>", file=sys.stderr)
+            print(
+                f"WARNING: could not set topics ({(proc.stderr or proc.stdout).strip()}) — "
+                f"set them later with: gh repo edit {remote} --add-topic <topic>",
+                file=sys.stderr,
+            )
 
     if remote is not None:
-        print(f"\nCreated: https://github.com/{remote} ({'public' if args.public else 'private'}) — "
-              "scaffold left UNCOMMITTED for your review")
+        print(
+            f"\nCreated: https://github.com/{remote} ({'public' if args.public else 'private'}) — "
+            "scaffold left UNCOMMITTED for your review"
+        )
     print(f"Scaffolded: {dest}")
     print("Next steps:")
-    print(f"  1. review the scaffold, then commit + push it yourself:")
-    print(f"     git -C {name} add -A && git -C {name} commit -m 'chore: scaffold {name}'"
-          + (f" && git -C {name} push" if remote is not None else ""))
+    print("  1. review the scaffold, then commit + push it yourself:")
+    print(
+        f"     git -C {name} add -A && git -C {name} commit -m 'chore: scaffold {name}'"
+        + (f" && git -C {name} push" if remote is not None else "")
+    )
     print(f"  2. (optional) drop research/sources into {name}/.local/")
     print(f"  3. cd {name} && claude")
     print("  4. paste the contents of .local/PROMPT.md (starts with /goal)")
     step = 5
     if remote is None:
-        print(f"  {step}. publish later: gh repo create {owner}/{name} --private --source {name} --push")
+        print(
+            f"  {step}. publish later: gh repo create {owner}/{name} --private --source {name} --push"
+        )
         step += 1
     if not args.public:
-        print(f"  {step}. when ready to go public: gh repo edit {owner}/{name} --visibility public"
-              " --accept-visibility-change-consequences")
+        print(
+            f"  {step}. when ready to go public: gh repo edit {owner}/{name} --visibility public"
+            " --accept-visibility-change-consequences"
+        )
         step += 1
-    print(f"  {step}. then on GitHub: enable Private Vulnerability Reporting (public repos only;"
-          " Settings -> Advanced Security)")
-    print(f"     and add a ruleset on {branch}: require PR + code-owner review + the `validate` check,"
-          " block force pushes")
+    print(
+        f"  {step}. then on GitHub: enable Private Vulnerability Reporting (public repos only;"
+        " Settings -> Advanced Security)"
+    )
+    print(
+        f"     and add a ruleset on {branch}: require PR + code-owner review + the `validate` check,"
+        " block force pushes"
+    )
     print(f"SCAFFOLD OK: {dest}")
 
 

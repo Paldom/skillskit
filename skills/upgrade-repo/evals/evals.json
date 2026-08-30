@@ -1,0 +1,102 @@
+{
+  "skill": "upgrade-repo",
+  "cases": [
+    {
+      "type": "should_trigger",
+      "prompt": "this repo was scaffolded months ago, bring its tooling up to date"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "update the validator in my skills repo to the latest skillskit"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "my skills repo has no eval runner - pull in the newer gate"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "refresh the hooks and bundled dev skills in this repository"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "can u upgrade this repo to the current skillskit template"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "is this repo's tooling out of date compared to skillskit?"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "adopt the newer authoring conventions in this existing repo"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "backport the skillskit improvements into this project"
+    },
+    {
+      "type": "should_trigger",
+      "prompt": "sync my generated repo with upstream skillskit"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "scaffold a new skills repository called python-skills"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "add a skill for icon design to this repo"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "publish this skills repo to skills.sh"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "turn this research pack into a skill"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "refine the description of the release skill so it triggers less"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "upgrade the npm dependencies in this project"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "bump the plugin version in the manifest before release"
+    },
+    {
+      "type": "should_not_trigger",
+      "prompt": "benchmark whether this skill beats the no-skill baseline"
+    },
+    {
+      "type": "quality",
+      "prompt": "This repo was created with an older skillskit. Bring it up to date.",
+      "expected_behavior": [
+        "runs scripts/upgrade_repo.py to locate the current template and report drift, rather than copying files by hand",
+        "reports managed and customized files separately, and does not write anything before the user confirms",
+        "applies only the managed files, leaving the repo's own skills/ untouched",
+        "reads the upgrade log and reports the manual follow-ups whose entries touch the files that actually differed",
+        "re-runs make check afterwards and reports the result"
+      ]
+    },
+    {
+      "type": "quality",
+      "prompt": "Upgrade this repo to the latest skillskit tooling.",
+      "expected_behavior": [
+        "stops with a clear instruction to install or point at skillskit when the template cannot be located",
+        "writes nothing at all when the template is missing - no partial upgrade",
+        "names the exact commands that would make the template available"
+      ]
+    },
+    {
+      "type": "quality",
+      "prompt": "Check whether this repo's skillskit tooling is current, and fix it if not.",
+      "expected_behavior": [
+        "reports that the repo is already current when no managed file differs",
+        "changes no files in that case",
+        "still surfaces customized files that the upgrade log says need a manual edit"
+      ]
+    }
+  ]
+}

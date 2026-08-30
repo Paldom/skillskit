@@ -38,6 +38,14 @@ not a skill problem.
 - **3–5 `quality` cases**: 1 canonical, variations, 1–2 edge cases. Assertions are
   plain-language behavior checks, not exact output text.
 
+Both trigger counts are waived for **user-invoked** skills
+(`disable-model-invocation: true`) — nothing routes them, so trigger cases have
+nothing to prove. Their `quality` cases still apply. Where the repo ships
+`scripts/run_evals.py` (`make evals`), it scores the trigger cases mechanically:
+vocabulary overlap, top-K rank against sibling descriptions, near-duplicate
+descriptions, and a rank-1 ratchet. Passing it is necessary, not sufficient — it
+is a lexical proxy, so the protocol below still decides.
+
 ## Running trigger evals
 
 There is no fully automated harness here (activation is stochastic); the working

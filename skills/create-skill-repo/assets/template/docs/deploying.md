@@ -52,6 +52,8 @@ gh repo edit {{GITHUB_OWNER}}/{{REPO_NAME}} --visibility public --accept-visibil
 #    (PVR + branch ruleset + a v* tag ruleset for immutable releases -
 #     see the SECURITY.md note and repo-protections guidance)
 gh api repos/{{GITHUB_OWNER}}/{{REPO_NAME}}/private-vulnerability-reporting --method PUT
+gh repo edit {{GITHUB_OWNER}}/{{REPO_NAME}} --enable-secret-scanning
+gh repo edit {{GITHUB_OWNER}}/{{REPO_NAME}} --enable-secret-scanning-push-protection
 
 # 3. Cut a versioned release (matches .claude-plugin/plugin.json) + topics
 gh skill publish --tag v0.1.0
@@ -78,7 +80,10 @@ frontmatter (recommended field, scaffolded by default here); the
 `.claude/skills/` warning is expected — those are this repo's own bundled dev
 skills, committed by design. The README ships with the install-count badge
 (`https://skills.sh/b/{{GITHUB_OWNER}}/{{REPO_NAME}}`) linking to the repo's
-skills.sh page.
+skills.sh page. If the repo commits `.agents/skills/` for in-checkout
+discovery, that warning is expected as well — the check assumes the directory
+holds other authors' installed skills. Secret-scanning and tag-ruleset warnings
+are real: the commands above clear the first two.
 
 The verification install above is also what seeds the first telemetry event —
 run it locally (telemetry is auto-disabled in CI) with the opt-out variables

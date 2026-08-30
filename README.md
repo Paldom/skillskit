@@ -8,9 +8,87 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 [![skills.sh](https://skills.sh/b/Paldom/skillskit)](https://skills.sh/Paldom/skillskit)
 
-From context to installable agent skills: research packs in, validated
-skills.sh-ready skills out — scaffolding, eval-first authoring, validation, and
-deployment included.
+Turn research into agent skills that actually fire — scaffolding, eval-first
+authoring, a validating gate, and a deliberate path to skills.sh.
+
+## Demo
+
+![The eval gate: two skills are given near-identical descriptions, rank-1 routing accuracy drops from 88.9% to 66.7%, two trigger prompts get outranked by a sibling, and the build fails](docs/demo/demo.gif)
+
+A skill whose description quietly overlaps a sibling still looks fine in review, and
+still fails to trigger. Here two descriptions are made near-identical on purpose:
+accuracy falls from 88.9% to 66.7%, the prompts that lost their skill are named, and
+the gate goes red. The demo is code — [`docs/demo/demo.tape`](docs/demo/demo.tape),
+regenerated with `vhs docs/demo/demo.tape`.
+
+## Quick start
+
+```bash
+npx skills add Paldom/skillskit
+```
+
+Then talk to your agent. Every example below is something you type — never a script
+inside a skill:
+
+```text
+turn the research pack in ./research into skills
+```
+
+```text
+/add-skill a skill that reviews SQL migrations for lock risk
+```
+
+That is the whole interface. `/skill-from-research` reads the pack, verifies its
+claims against primary sources, and writes each finding as a single-purpose,
+eval-first skill; `/add-skill` does one skill at a time in any repo.
+
+### Other ways to install
+
+```bash
+npx skills add Paldom/skillskit -a codex -a pi   # target specific agents
+gh skill install Paldom/skillskit                # GitHub CLI ≥ 2.90
+```
+
+```text
+/plugin marketplace add Paldom/skillskit
+/plugin install skillskit@skillskit
+```
+
+Working inside this checkout? Codex and other
+[Agent Skills](https://agentskills.io)-standard agents discover the same five skills
+through `.agents/skills/` with no install at all.
+
+## Skills
+
+| Skill | Ask it when | Invoke |
+| --- | --- | --- |
+| [skill-from-research](skills/skill-from-research/) | You have reports, notes or transcripts and want skills out of them | `/skill-from-research <path>` |
+| [create-skill-repo](skills/create-skill-repo/) | The skills need a home — a whole repo, wired up | `/create-skill-repo <name>` |
+| [add-skill](skills/add-skill/) | One skill, in any repo, authored or repaired properly | `/add-skill <idea>` |
+| [publish-repo](skills/publish-repo/) | It is ready and you want it on skills.sh | `/publish-repo` |
+| [upgrade-repo](skills/upgrade-repo/) | A repo you generated months ago has stale tooling | `/upgrade-repo` |
+
+## The flow
+
+1. **[Required]** Gather the material — reports, notes, transcripts, examples — into
+   one folder. What makes a good pack:
+   [research-pack.md](skills/skill-from-research/references/research-pack.md).
+2. **[Required]** Distil it: `/skill-from-research <path>`. The pack is inventoried,
+   read in full, verified against primary sources, and split into single-purpose
+   skills, each written evals-first.
+3. **[Optional]** No repo yet? `/create-skill-repo <name>` scaffolds one first —
+   OSS hygiene, CI, hooks, the validating gate, distribution manifests.
+4. **[Required]** Review. Everything stays uncommitted in your working tree; you
+   read the diff, you commit.
+5. **[Afterward]** Ship it: `/publish-repo` walks the gates, visibility, protections,
+   release and verification.
+6. **[Afterward]** When this kit improves, `/upgrade-repo` carries the change back
+   into repos you generated earlier — see the
+   [upgrade log](skills/upgrade-repo/references/upgrade-log.md).
+
+Full walkthrough: [docs/guide.md](docs/guide.md).
+
+## Where this fits
 
 ```mermaid
 flowchart LR
@@ -21,87 +99,41 @@ flowchart LR
     class SK here
 ```
 
-**The one-shot path.** [researchkit](https://github.com/Paldom/researchkit) does the digging; skillskit turns the pack into a skill you install once and reuse in every agent. Prefer compounding memory over a packaged skill? Grow a brain with [brainkit](https://github.com/Paldom/brainkit).
+[researchkit](https://github.com/Paldom/researchkit) does the digging; skillskit turns
+the pack into a skill you install once and reuse everywhere. Want compounding memory
+instead of a packaged skill? Grow a brain with
+[brainkit](https://github.com/Paldom/brainkit).
 
-```
-research pack ──▶ /skill-from-research ──▶ validated skills ──▶ /publish-repo ──▶ skills.sh
-                        │
-                        └─▶ /create-skill-repo (when a new repo is needed)
-```
+## What the gate checks
 
-## Quick start
+`make check` is the whole gate, and it runs on every write, every commit and every PR:
 
-Install with the [skills CLI](https://skills.sh) — auto-detects 70+ agents
-(Claude Code, Codex, Cursor, Copilot, pi, …):
-
-```bash
-npx skills add Paldom/skillskit                  # all detected agents
-npx skills add Paldom/skillskit -a codex -a pi   # or target specific agents
-```
-
-Or with the [GitHub CLI](https://cli.github.com/manual/gh_skill_install) (≥ 2.90):
-
-```bash
-gh skill install Paldom/skillskit
-```
-
-Or as a Claude Code plugin:
-
-```
-/plugin marketplace add Paldom/skillskit
-/plugin install skillskit@skillskit
-```
-
-Then drop your research into a folder and say **"turn this research pack into a
-skill"** — or invoke any skill directly with `/<skill-name>`.
-
-Working inside this checkout? Codex and other Agent-Skills-standard agents
-discover the same four skills via the repo's `.agents/skills/` — no install
-needed.
-
-## Skills
-
-| Skill | Description |
-| --- | --- |
-| [skill-from-research](skills/skill-from-research/) | Turns a research pack (reports, notes, transcripts) into installable skills — inventories the pack, verifies claims against primary sources, authors each skill eval-first. |
-| [create-skill-repo](skills/create-skill-repo/) | Scaffolds a complete standalone skills repository — GitHub repo, OSS hygiene, CI with a skills.sh consumer job, validation hooks, distribution manifests; the scaffold overlay stays uncommitted for your review. |
-| [add-skill](skills/add-skill/) | Authors or improves a single skill in any repository via the eval-first workflow — trigger evals before the body, validated before done; benchmarks via the official skill-creator harness when installed. |
-| [publish-repo](skills/publish-repo/) | Publishes a skills repository to skills.sh deliberately — pre-flight gates, visibility flip, protections, a versioned `gh skill` release, and consumer-style verification. |
-
-## The flow
-
-1. **Research** — gather everything about your topic into a pack (deep-research
-   reports, notes, transcripts, examples). See
-   [what makes a good pack](skills/skill-from-research/references/research-pack.md).
-2. **Distill** — `/skill-from-research <path>`: the pack is inventoried, read in
-   full, and verified against primary sources; each finding becomes an
-   eval-first, single-purpose skill (a new repo is scaffolded via
-   `/create-skill-repo` when needed).
-3. **Review** — everything stays uncommitted in your working tree; you review,
-   commit, and push.
-4. **Ship** — `/publish-repo` walks the deliberate path to the skills.sh
-   catalogue: gates, visibility, protections, release, verification.
-
-Full walkthrough: [docs/guide.md](docs/guide.md).
+- **Frontmatter and structure** — the strict YAML subset that loads in every runtime.
+- **Trigger evals, executed** — every eval prompt scored against every description in
+  the repo, so a drifting or colliding description fails the build. Current rank-1
+  routing accuracy: **88.9%**, ratcheted in CI. It is a lexical proxy for the model's
+  router, not the router; [docs/evals.md](docs/evals.md) is explicit about what that
+  does and does not prove.
+- **Security** — skill content and every bundled script scanned for what registry
+  audits keep finding: downloads piped into a shell, environments posted to a
+  collector, `shell=True`, instructions that act without telling the user.
+- **Ruff** — lint and format over everything shipped, bandit rules included.
+- **README** — the shape in [docs/readme-standard.md](docs/readme-standard.md).
 
 ## Repository structure
 
 ```
-skills/                        # the four distributed skills (this is what installs)
+skills/                        # the five distributed skills (this is what installs)
   create-skill-repo/assets/template/   # the complete repo scaffold, shipped inside the skill
-docs/                          # flow guide, authoring rulebook, eval methodology, deploying
-scripts/                       # deterministic validator (shared by hooks and CI)
-.claude/                       # dogfood: hooks that validate every SKILL.md write here
+docs/                          # flow guide, authoring rulebook, eval methodology, README standard
+scripts/                       # the gate: validator, eval scorer, self-checks
+.claude/                       # dogfood: hooks that validate and lint every write here
 .claude-plugin/                # plugin + marketplace manifests
 skills.sh.json                 # skills.sh repo-page groupings
 ```
 
-## Working on this repo with an agent
-
-This repo is agent-native and dogfoods its own rules: canonical agent
-instructions live in [AGENTS.md](AGENTS.md) (CLAUDE.md imports it), hooks
-validate every `SKILL.md` on write, `make check` runs the full validator, and CI
-enforces the same gate plus a real `npx skills` consumer install on every PR.
+Canonical agent instructions live in [AGENTS.md](AGENTS.md) (CLAUDE.md imports it).
+`make hooks` installs the commit-time layer.
 
 ## Contributing
 

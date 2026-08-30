@@ -25,10 +25,17 @@ name or idea to scope in step 1.
 
 ## Workflow
 
-1. **Scope.** State in one sentence what the skill does and the concrete failure
-   it fixes. If the sentence needs "and", split into multiple skills, one at a
-   time. Check the repo's existing skill catalog for overlap — near-neighbor
-   descriptions steal each other's triggers; plan disjoint wording.
+1. **Scope, and pick the invocation mode.** State in one sentence what the skill
+   does and the concrete failure it fixes. If the sentence needs "and", split
+   into multiple skills, one at a time. Check the repo's existing skill catalog
+   for overlap — near-neighbor descriptions steal each other's triggers; plan
+   disjoint wording. Then decide *who invokes it*, because it changes the name,
+   the description, and the eval set: **model-invoked** (default — the router
+   picks it from the user's words) or **user-invoked**
+   (`disable-model-invocation: true` — the user types `/name`; correct for
+   side-effecting skills and for anything whose value is a memorable command).
+   When one capability wants both, use the alias-over-engine split in
+   `references/skill-authoring.md` rather than compromising one for the other.
 2. **Gather.** Read the repo's `.local/` recursively if present (research,
    examples, constraints — never cite `.local/` paths from a skill). Research
    beyond it: web-search for current facts, official docs, and prior art; verify
@@ -38,10 +45,14 @@ name or idea to scope in step 1.
    `references/evals.md`: ≥8 `should_trigger` (vary formality, typos, terseness),
    ≥8 `should_not_trigger` (near-misses sharing keywords), 3–5 `quality` cases
    with plain-language `expected_behavior` assertions. If you can't write these,
-   the scope is unclear — back to step 1.
+   the scope is unclear — back to step 1. For a **user-invoked** skill both
+   trigger counts are waived — no router weighs its description — so write the
+   `quality` cases only.
 4. **Draft SKILL.md.** Frontmatter: `name` == folder name; `description` on a
-   **single line**, third person, `[what] + [use when …] + [not for …]`, 150–400
-   chars, trigger keywords in the first ~120. Body per
+   **single line**, third person. Model-invoked: `[what] + [use when …] + [not
+   for …]`, 150–400 chars, trigger keywords in the first ~120. User-invoked: one
+   verb-first line that reads well in a `/` menu — trigger phrasings and
+   exclusions are dead weight there. Body per
    `references/skill-authoring.md`: purpose → when/when-not → numbered workflow →
    output spec → gotchas → pointers. Under 500 lines; deterministic steps as
    `scripts/` (non-zero exit on failure); long material as `references/` with a
@@ -50,9 +61,14 @@ name or idea to scope in step 1.
    `scripts/validate_skills.py`), it must exit 0 — fix every error, triage every
    warning. If it has none, self-check against the frontmatter rules in the
    authoring reference (single-line description, name==folder, length bounds).
+   Where `scripts/run_evals.py` exists (`make evals`), it must also pass: it
+   scores each trigger prompt against every sibling description and fails on
+   no-overlap prompts, a sibling outranking the skill, or a near-duplicate
+   description. Fix the description it points at — never the evals.
 6. **Trigger self-test.** For ≥3 should-trigger and ≥2 should-not-trigger
    prompts, reason explicitly: would the description alone route this prompt
    here against every other installed skill? Fix the description, not the evals.
+   (Skip for user-invoked skills — nothing routes them.)
 7. **Measure.** Scan the available-skills list for Anthropic's official
    `skill-creator` (typically `skill-creator:skill-creator`; the plugin-qualified
    name varies by marketplace — match on name/description, don't hardcode). If

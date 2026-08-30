@@ -46,4 +46,20 @@ and client-side hooks are convenience; the ruleset is the real gate.
 
 ## Local development
 
-No dependencies beyond Python 3.10+ stdlib. `make check` is the whole gate.
+`make check` is the whole gate: validator (frontmatter, evals, security rules,
+manifests) → ruff → trigger-eval scoring → self-checks.
+
+**Everything this repo ships stays Python 3.10+ stdlib-only** — skills run on other
+people's machines after `npx skills add`, so a runtime dependency is not ours to
+add. Linting and hooks are dev tooling, pinned in `requirements-dev.txt`, and
+`make check` runs ruff through `uvx` so no local install is required.
+
+Optional but recommended, once per clone:
+
+```bash
+make hooks      # pre-commit install --install-hooks
+```
+
+That adds the commit-time layer (hygiene, ruff, private-key detection) and a
+pre-push `make check`. It is convenience, not enforcement — `--no-verify` bypasses
+it silently, which is why CI runs every one of the same checks.
