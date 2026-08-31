@@ -7,6 +7,23 @@ versioning: [SemVer](https://semver.org) on the plugin manifest
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-08-31
+
+### Changed
+- The bundled `add-skill` shipped into scaffolded repos is now user-invoked
+  (`disable-model-invocation: true`), matching its sibling `publish-repo`: both are
+  side-effecting maintainer tools reached by typing `/name`. It was also the only
+  honest fix for a structural blind spot - a skill *about skills*, living in a repo
+  of skills, cannot lexically out-match a non-trigger prompt like "scaffold a new
+  skills repository" that contains the domain word twice. Nothing routes it now, so
+  its trigger evals are waived.
+- `test_validate_skills.py` asserts no security **errors** rather than no findings.
+  Asserting on warnings contradicted the severity split the scan is built on and
+  turned a correct skill red: one that documents an attack it defends against, by
+  quoting "ignore previous instructions" as something to report, trips the phrase
+  heuristic while being exactly right.
+
+
 ### Removed
 - The README rewrite and the `docs/demo/` terminal GIF: the demo led with a
   deliberately failing build, which reads as a broken project rather than a
@@ -158,5 +175,6 @@ versioning: [SemVer](https://semver.org) on the plugin manifest
 - add-skill (root + template) and docs/deploying.md (root + template): document the exact `skills.sh.json` schema shape and the telemetry/gh-version/npx-cache gotchas in the deploy path and troubleshooting table.
 - add-skill: new Measure step — delegates quality-eval runs, baseline benchmarking, and description optimization to Anthropic's official skill-creator skill (`skill-creator:skill-creator`) as a subskill when installed; the manual protocol in `references/evals.md` remains the fallback.
 
+[0.2.2]: https://github.com/Paldom/skillskit/releases/tag/v0.2.2
 [0.2.1]: https://github.com/Paldom/skillskit/releases/tag/v0.2.1
 [0.2.0]: https://github.com/Paldom/skillskit/releases/tag/v0.2.0
