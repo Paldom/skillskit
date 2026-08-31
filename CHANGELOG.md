@@ -7,6 +7,13 @@ versioning: [SemVer](https://semver.org) on the plugin manifest
 
 ## [Unreleased]
 
+### Removed
+- The README rewrite and the `docs/demo/` terminal GIF: the demo led with a
+  deliberately failing build, which reads as a broken project rather than a
+  working gate. README restored to its previous form, with `upgrade-repo` added
+  to the catalogue.
+
+
 ## [0.2.1] - 2026-08-31
 
 ### Changed
